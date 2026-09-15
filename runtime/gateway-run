@@ -1,0 +1,6 @@
+#!/command/with-contenv sh
+set -eu
+export HOME=/var/lib/hermes
+export OMNI_DATA_DIR=/var/lib/hermes/omni
+cd /opt/hermes
+exec /command/s6-setuidgid hermes /opt/hermes/.venv/bin/python -m omni.gateway

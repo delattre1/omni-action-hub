@@ -1,0 +1,42 @@
+# Copy .env.prod.example to .env, fill all required values, provision Plow credentials.
+# Requires Docker Compose v2.30+; the image must already exist in your registry.
+services:
+  agent:
+    image: ${OMNI_IMAGE:?Set a published immutable image reference in .env}
+    platform: linux/amd64
+    pull_policy: always
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?Required}
+      GEMINI_MODEL: ${GEMINI_MODEL:?Required}
+      LINEAR_API_KEY: ${LINEAR_API_KEY:?Required}
+      LINEAR_TEAM_ID: ${LINEAR_TEAM_ID:?Required}
+      LINEAR_PROJECT_ID: ${LINEAR_PROJECT_ID:-}
+      OMNI_ALLOWED_CHAT_ID: ${OMNI_ALLOWED_CHAT_ID:?Required}
+      OMNI_WORKERS: ${OMNI_WORKERS:-2}
+      OMNI_DATA_DIR: /var/lib/hermes/omni
+      AGENT_ID: ${AGENT_ID:-}
+    volumes:
+      - type: bind
+        source: ${PLOW_CREDENTIALS_FILE:?Set the absolute path to minted Plow credentials}
+        target: /var/lib/plow/credentials.host
+        read_only: true
+        bind:
+          create_host_path: false
+      - agent-home:/var/lib/hermes
+    restart: unless-stopped
+    stop_grace_period: 35s
+    pids_limit: 256
+    mem_limit: 2g
+    healthcheck:
+      test: [CMD, /opt/hermes/.venv/bin/python, -m, omni.cli, health]
+      interval: 30s
+      timeout: 5s
+      start_period: 120s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: '2'
+volumes:
+  agent-home:

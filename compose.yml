@@ -1,0 +1,32 @@
+services:
+  agent:
+    image: ${OMNI_IMAGE:-omni-action-hub:0.1.0}
+    platform: linux/amd64
+    build: .
+    env_file:
+      - path: ./omni.env
+        format: raw
+    volumes:
+      - type: bind
+        source: ./plow-credentials
+        target: /var/lib/plow/credentials.host
+        read_only: true
+        bind:
+          create_host_path: false
+      - agent-home:/var/lib/hermes
+    restart: unless-stopped
+    stop_grace_period: 35s
+    healthcheck:
+      test: ["CMD", "/opt/hermes/.venv/bin/python", "-m", "omni.cli", "health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 120s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: "2"
+
+volumes:
+  agent-home:

@@ -1,0 +1,27 @@
+#!/command/with-contenv sh
+set -eu
+# A dedicated, collector-compatible usage store. Never read the general
+# gateway store as well: the same Gemini call must be counted only once.
+export HOME=/var/lib/hermes/omni
+export HERMES_HOME=/var/lib/hermes/omni
+client=/opt/omni/agent_index_client.py
+python=/opt/hermes/.venv/bin/python
+if [ -z "${AGENT_ID:-}" ]; then
+  echo "omni-index: AGENT_ID unset; competition reporting pending" >&2
+  exec sleep 86400
+fi
+while [ ! -f "$HERMES_HOME/state.db" ]; do sleep 5; done
+while :; do
+  status=0
+  /command/s6-setuidgid hermes "$python" "$client" status >/dev/null 2>&1 || status=$?
+  case "$status" in
+    0) ;;
+    3) /command/s6-setuidgid hermes "$python" "$client" --register --agent "$AGENT_ID" >/dev/null 2>&1 || {
+         echo "omni-index: registration failed" >&2; sleep 3600; continue;
+       } ;;
+    *) echo "omni-index: unreadable reporter state" >&2; sleep 3600; continue ;;
+  esac
+  /command/s6-setuidgid hermes env -u PLOW_AGENT_TOKEN "$python" "$client" >/dev/null 2>&1 \
+    || echo "omni-index: report failed" >&2
+  sleep 3600
+done

@@ -1,0 +1,8 @@
+Omni-Action Hub
+
+This distribution builds on plow-pbc/plow-hermes-agent and the image-bundled
+hermes-plugin-plow, Copyright 2026 The Plow Collective, Inc, under Apache-2.0.
+The official Agent Index client is fetched at a pinned revision with a checksum.
+The gateway service layout follows the Plow base and life-assistant examples.
+Upstream source code, licenses, and notices remain with their respective projects.
+Plow and Linear are trademarks of their respective owners. No affiliation is implied.

@@ -1,0 +1,78 @@
+{
+  "documentType": "codex-security.hardening-analysis",
+  "schemaVersion": "1.0",
+  "analysisId": "omni-20260913-media",
+  "sourceEvidence": {
+    "kind": "source_and_experiments",
+    "label": "Incidente de cache e implementação Omni",
+    "collectionSha256": "639e248c7d59c911ceb544deef38a24d1d08ebe6e6aefed6c1e4906fd05b102f",
+    "artifactCount": 11,
+    "sourceDrift": "unknown",
+    "artifacts": [
+      {
+        "path": "VALIDATION.md",
+        "sha256": "a7eabb8612dff0ba3909c0af0934ed0e80d6eb6ce3e08ab28b330009e562273a"
+      },
+      {
+        "path": "src/omni/__init__.py",
+        "sha256": "36caa135581290cb765c03a903ea510fe0c47312d28506ac33b4870abc764719"
+      },
+      {
+        "path": "src/omni/cli.py",
+        "sha256": "c4f58f69d87daef14b8443a7846f49a4a4246f7fb3c8f6c32b7778ba5522a4ff"
+      },
+      {
+        "path": "src/omni/clients.py",
+        "sha256": "92537f4f4319bd4f8ccd3207c0a2c28589967dc93ec47e1c66fadfbd57d0ac6b"
+      },
+      {
+        "path": "src/omni/environment.py",
+        "sha256": "ac40b60e3f13ed9d8edb6299a825e251cb48b9cac7336a988858dc01a4b0f546"
+      },
+      {
+        "path": "src/omni/gateway.py",
+        "sha256": "4e6be85dba9f2fc20e0178c73044ab52270fa3821196f0a6b5671e4baae83d0e"
+      },
+      {
+        "path": "src/omni/media.py",
+        "sha256": "585ea4f8ee7918edf058b1b7e89daab484760a5ff90e3092133a05decdf14551"
+      },
+      {
+        "path": "src/omni/models.py",
+        "sha256": "cf4ba6443716d3fd35172c6432e3d4fc7c567fa3ada0b5538d15ceab68a4c0b1"
+      },
+      {
+        "path": "src/omni/store.py",
+        "sha256": "c8c4757d1c2290ce883426ca18e5d7cd4302f9845e9323a9b16a9cb0afa229f4"
+      },
+      {
+        "path": "src/omni/workflow.py",
+        "sha256": "afd1a69f317937fdd0850e099151b71fa526877bc3f27a577c9b8bfa825f7faa"
+      },
+      {
+        "path": "compose.yml",
+        "sha256": "ffabd14771ac1d04059ae56fb64656024f3dcefc0d34d03d6a4dcc18c12c4532"
+      }
+    ]
+  },
+  "assessment": {
+    "outcome": "local_remediation_preferred",
+    "summary": "Correções locais de cache, resolução restrita e estado de espera são proporcionais ao incidente reproduzido."
+  },
+  "constraints": {
+    "profile": "balanced",
+    "nonNegotiables": [
+      "Sem ferramentas gerais para o modelo",
+      "Destino configurado e autorização autenticada",
+      "Sem recriação cega após timeout"
+    ],
+    "assumptions": [
+      "Sem auditoria completa da imagem base"
+    ]
+  },
+  "opportunities": [],
+  "openQuestions": [
+    "Validar novos envios do telefone após deploy",
+    "Revisar dependências da imagem base antes de distribuição ampla"
+  ]
+}

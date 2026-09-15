@@ -1,0 +1,73 @@
+{
+  "evaluation_date": "2026-09-14",
+  "timezone": "America/Sao_Paulo",
+  "scope": "local tests plus live deep diagnostic; no new physical iPhone test",
+  "deep_doctor": {
+    "storage": "ok",
+    "linear": "ok",
+    "fallback_label": "ok",
+    "plow": "ok",
+    "gemini": "ok"
+  },
+  "runtime": {
+    "image": "omni-action-hub:0.1.0",
+    "health": "healthy",
+    "memory_bytes": 0,
+    "pids_limit": null,
+    "health_interval_ns": 30000000000
+  },
+  "stress": {
+    "external_apis": "simulated",
+    "rows": [
+      {
+        "workers": 1,
+        "jobs": 24,
+        "peak": 1,
+        "unique_tickets": 24,
+        "acks": 24,
+        "seconds": 2.362
+      },
+      {
+        "workers": 2,
+        "jobs": 24,
+        "peak": 2,
+        "unique_tickets": 24,
+        "acks": 24,
+        "seconds": 1.16
+      },
+      {
+        "workers": 4,
+        "jobs": 24,
+        "peak": 4,
+        "unique_tickets": 24,
+        "acks": 24,
+        "seconds": 0.559
+      }
+    ]
+  },
+  "compression": {
+    "source_bytes": 6226298,
+    "vision_bytes": 864877,
+    "mime": "image/jpeg",
+    "width": 1280,
+    "height": 720,
+    "elapsed_ms": 235.62,
+    "image_kind": "seeded high-entropy synthetic; not an OCR quality test"
+  },
+  "pending": [
+    "published immutable image and clean install",
+    "three independent human installations",
+    "fresh iPhone UX measurements",
+    "production container resource limits",
+    "production compression telemetry"
+  ],
+  "functional_code_changed": false,
+  "test_suite": {
+    "tests": 100,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 9.405,
+    "lint": "ruff: all checks passed"
+  }
+}

@@ -1,0 +1,12 @@
+*
+!Dockerfile
+!pyproject.toml
+!src/
+!src/**
+!runtime/
+!runtime/**
+!vendor/
+!vendor/**
+!LICENSE
+!NOTICE
+**/.DS_Store
