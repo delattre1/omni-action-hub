@@ -1,4 +1,4 @@
-FROM public.ecr.aws/e1h7x4a2/plow-cloud-agents:base-a71f71d6a988ac5fb0cddf866f298b56433a98c7@sha256:5a1aa4f068f836461b19aaeddae365485c685894441eb2605222461c889a0f44
+FROM public.ecr.aws/e1h7x4a2/plow-cloud-agents:base-51f83158a70a383f03a4d03dbd8b6ea102cf0361@sha256:253d7ed3409effa7fa59113d93b4b79bb731d8264cdaf4cd60294924d0110a2e
 
 COPY pyproject.toml /opt/omni/pyproject.toml
 COPY src/ /opt/omni/src/
