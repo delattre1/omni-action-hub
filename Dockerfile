@@ -19,4 +19,5 @@ RUN set -eu; \
     chmod 0644 /opt/omni/agent_index_client.py
 COPY runtime/s6-overlay/ /etc/s6-overlay/
 COPY LICENSE NOTICE /usr/share/doc/omni-action-hub/
+COPY LICENSES/ /usr/share/doc/omni-action-hub/LICENSES/
 RUN chmod 0755 /etc/s6-overlay/s6-rc.d/omni-index/run

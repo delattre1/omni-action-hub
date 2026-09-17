@@ -5,6 +5,8 @@
 **Menos relato. Mais resolvido.** Uma captura de tela e “Registra esse bug” no
 iMessage viram uma issue no Linear, com evidência anexada e confirmação na conversa.
 
+**Demonstração:** [roteiro de 60 segundos](docs/DEMO-60S.md). Vídeo real ainda não publicado; não há link fictício.
+
 [Começar](#instalação) · [Arquitetura](#arquitetura-em-um-fluxo) ·
 [Avaliação de IA](evals/README.md) · [Landing page](website/README.md) ·
 [Distribuição](docs/DISTRIBUTION.md)
@@ -16,7 +18,7 @@ iMessage viram uma issue no Linear, com evidência anexada e confirmação na co
 | Confirmação de recebimento | 1,371 s | Uma entrega real do ACK; não é tempo de criação do ticket |
 | Representação para visão | 6,23 MB → 865 KB / 236 ms | Benchmark sintético; cerca de 86% menos bytes, não 86× |
 
-**Status:** gateway local validado; distribuição pública, instalação independente
+**Status:** gateway local validado; imagem privada publicada; distribuição pública, instalação independente
 e validação com três pessoas continuam pendentes. Há um harness de ML Evals, mas
 nenhum F1 real é publicado sem o dataset anotado. O [relatório](docs/evaluation-2026-09-14/REPORT.md)
 detalha os limites; [VALIDATION.md](VALIDATION.md) guarda as demonstrações históricas.
@@ -80,42 +82,73 @@ Silicon isso depende da emulação do Docker. O build amd64 e sua execução em 
 
 ## Instalação
 
-Abra o terminal **nesta pasta** e execute:
+**Imagem pronta, sem build local.** Repositório e GHCR estão privados nesta etapa;
+usuários sem acesso não conseguem instalar. Abra ambos antes de divulgar ao público,
+ou conceda acesso aos avaliadores. Para pacote privado, faça login no GHCR conforme
+[a documentação oficial](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
+
+### Prepare as contas uma vez
+
+- Obtenha sua [chave Gemini](https://aistudio.google.com/app/apikey) e sua
+  [chave pessoal Linear](https://linear.app/settings/api). No Linear, copie o
+  UUID do time pelo menu de comandos “Copy model UUID”. Use um time de testes.
+- Tenha Docker Desktop aberto, Compose 2.30+ e Python 3 para a CLI Plow.
+- Provisione sua linha Plow. Dentro da pasta clonada abaixo:
 
 ```sh
-sh scripts/install.sh
+git clone https://github.com/plow-pbc/plow-agents.git work/plow-agents
+git -C work/plow-agents checkout 8ce907e220ab67018d6857e8054a41eed4ecd279
+work/plow-agents/bin/plow-agents login
+work/plow-agents/bin/plow-agents lines
+# Substitua pelo ln_... livre mostrado acima. Isso cria ./plow-credentials.
+work/plow-agents/bin/plow-agents mint ln_SUA_LINHA
+chmod 600 plow-credentials
+python3 scripts/setup.py --chat-id
 ```
 
-O instalador verifica o Docker, obtém a CLI oficial em uma revisão fixa, abre o
-login Plow, lista linhas livres e solicita a linha a ativar. Se a conta ainda
-não tiver uma linha, execute `work/plow-agents/bin/plow-agents login --new-line`
-e repita o instalador. A CLI pode exigir permissões/aceites próprios do serviço.
+O login solicita ativação pelo telefone. Se não houver linha, use `login --new-line`.
+Copie o `cht_...` impresso pelo último comando para `OMNI_ALLOWED_CHAT_ID`.
+Não reutilize a mesma linha em dois agentes ativos. Guia: [Plow Quickstart](https://github.com/plow-pbc/plow-agents#quickstart).
 
-Em seguida, o assistente de configuração descobre a conversa principal por
-consulta autenticada ao Plow, solicita chaves localmente com entrada oculta e
-grava `omni.env` com modo `0600`. `plow-credentials` também fica em `0600`.
-O Compose usa `env_file` no formato `raw`, preservando caracteres das chaves.
-
-Se preferir executar as etapas separadamente:
+### Clone, configure, inicie
 
 ```sh
-# Após obter a CLI oficial, execute os comandos dentro desta pasta:
-plow-agents login
-plow-agents lines
-plow-agents mint ln_SUA_LINHA
-python3 scripts/setup.py
-docker compose up --build -d
-docker exec -it omni-action-hub-agent-1 /bin/sh -c "omni doctor"
+git clone https://github.com/fecabrall/omni-action-hub.git
+cd omni-action-hub
+cp .env.example .env
+chmod 600 .env
+# Prepare o Plow como acima e preencha as chaves/UUIDs no .env com seu editor.
+docker compose up -d
 ```
 
-O bind de credenciais recusa arquivo ausente; não cria uma pasta acidentalmente.
-Não monte `chat.db`, o diretório pessoal ou o socket Docker no container.
+`.env.example` contém links, instruções e o digest da imagem. `COMPOSE_FILE` já
+seleciona `docker-compose.prod.yml`, sem compilar. Dados sensíveis com `$` ou `#`
+devem ficar entre aspas simples no `.env`. Não acrescente comentários na mesma
+linha da chave. O arquivo Plow deve existir antes de iniciar: o bind falha se faltar.
 
-Quando uma imagem de release estiver publicada e acessível, sua instalação
-poderá usar `OMNI_IMAGE=ghcr.io/SEU_REPOSITORIO:v0.1.0 sh scripts/install.sh`.
-Esse endereço é um exemplo, **não uma imagem disponível**. A meta de cinco
-minutos precisa ser medida em uma instalação real com imagem pré-construída;
-o primeiro build local não satisfaz essa meta por definição.
+Validação opcional antes de iniciar: `python3 scripts/preflight.py`. Ela não imprime
+chaves nem testa contas externas. Após iniciar:
+
+```sh
+docker compose ps
+docker exec "$(docker compose ps -q agent)" /bin/sh -c 'omni doctor --deep'
+```
+
+O diagnóstico profundo usa a API Gemini e consome sua quota. Para ver apenas eventos
+operacionais: `docker compose logs --tail 50 agent`; revise antes de compartilhar.
+Não exponha a saída de `docker compose config`: ela contém variáveis expandidas.
+
+**Dois minutos é uma meta, não uma medição.** Preparação de contas, autenticação,
+download da imagem e emulação amd64 variam. O teste técnico em clone limpo está em
+[LAUNCH-CHECK.md](docs/LAUNCH-CHECK.md); três instalações humanas seguem pendentes.
+
+### Desenvolvimento e instalação antiga
+
+A configuração antiga `omni.env` continua suportada por `compose.yml`.
+Use explicitamente `docker compose -f compose.yml up --build -d` para desenvolvimento.
+`scripts/install.sh` é o assistente desse fluxo antigo, com build local; não é o
+atalho de distribuição. Para migrar uma instalação ativa, pare-a primeiro e
+preserve o volume; não execute outra cópia sobre a mesma linha Plow.
 
 ## Uso
 

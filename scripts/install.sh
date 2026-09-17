@@ -24,9 +24,9 @@ if [ ! -f plow-credentials ]; then
 fi
 if [ ! -f omni.env ]; then python3 scripts/setup.py; fi
 if [ -n "${OMNI_IMAGE:-}" ]; then
-  docker compose pull
-  docker compose up --no-build -d
+  docker compose -f compose.yml pull
+  docker compose -f compose.yml up --no-build -d
 else
-  docker compose up --build -d
+  docker compose -f compose.yml up --build -d
 fi
-echo "Iniciado. Execute: sh scripts/control.sh doctor"
+echo 'Iniciado. Execute: docker exec "$(docker compose -f compose.yml ps -q agent)" /bin/sh -c "omni doctor"'

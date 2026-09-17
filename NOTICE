@@ -6,3 +6,8 @@ The official Agent Index client is fetched at a pinned revision with a checksum.
 The gateway service layout follows the Plow base and life-assistant examples.
 Upstream source code, licenses, and notices remain with their respective projects.
 Plow and Linear are trademarks of their respective owners. No affiliation is implied.
+
+Original Omni-Action Hub code is MIT licensed, Copyright 2026 Felipe Cabral.
+This does not relicense upstream components. The Apache-2.0 text is preserved
+in LICENSES/Apache-2.0.txt; dependencies retain their own licenses and notices.
+Releases before v0.1.1 shipped the Apache-2.0 project license.

@@ -22,3 +22,26 @@ evals/private/
 .env.*
 !.env.prod.example
 .DS_Store
+# Local state, database sidecars, secret backups and personal credentials
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
+*.db.*
+*.sqlite.*
+*.sqlite3.*
+.envrc
+.env-*
+omni.env.*
+!omni.env.example
+plow-credentials*
+credentials/
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+data/
+backups/
+!.env.example

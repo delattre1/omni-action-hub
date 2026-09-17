@@ -1,0 +1,12 @@
+{
+  "clean_clone": true,
+  "missing_configuration_rejected": true,
+  "plain_compose_selects_production": true,
+  "no_build": true,
+  "quoted_special_characters_preserved_in_isolated_container": true,
+  "memory_bytes": 2147483648,
+  "pids_limit": 256,
+  "preflight": "passed",
+  "scope": "configuration and network-disabled env probe; fake credentials; no second agent started",
+  "private_image_pull": "unauthorized before visibility change"
+}

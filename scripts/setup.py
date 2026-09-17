@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Local setup with standard-library Python; secrets never travel through chat."""
+import argparse
 import getpass
 import json
 import os
@@ -20,6 +21,9 @@ def ask(label, default="", secret=False):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--chat-id", action="store_true", help="Print authorized chat ID without prompting for API keys")
+    args = parser.parse_args()
     os.umask(0o077)
     print("Configure o Plow primeiro: plow-agents login; plow-agents lines; plow-agents mint <linha>.")
     print("Execute mint nesta pasta. O comando grava plow-credentials antes do Docker iniciar.")
@@ -28,7 +32,7 @@ def main():
         raise SystemExit("Falta plow-credentials. Consulte o README e execute novamente.")
     os.chmod(credentials, 0o600)
     target = ROOT / "omni.env"
-    if target.exists():
+    if target.exists() and not args.chat_id:
         raise SystemExit("omni.env já existe. Edite-o localmente para alterar a configuração.")
     # Read mint's dotenv as data, never source a shell file.
     pairs = {}
@@ -55,6 +59,9 @@ def main():
             raise ValueError("ambiguous home")
     except Exception:
         raise SystemExit("Não consegui identificar a conversa principal. Revise o acesso Plow; nenhum segredo foi exibido.")
+    if args.chat_id:
+        print(homes[0])
+        return
     print("Conversa principal identificada pelo Plow. O agente aceitará somente pedidos do proprietário nela.")
     values = {
         "OMNI_ALLOWED_CHAT_ID": homes[0],
@@ -76,7 +83,7 @@ def main():
             f.write(key + "=" + value + "\n")
     print("Configuração salva em omni.env (0600). Imagens serão enviadas ao Gemini e ao Linear.")
     print("A edição de competição reporta contagens de tokens ao Agent Index quando AGENT_ID está configurado.")
-    print("Próximo comando: docker compose up --build -d")
+    print("Configuração de desenvolvimento: docker compose -f compose.yml up --build -d")
 
 
 if __name__ == "__main__":
