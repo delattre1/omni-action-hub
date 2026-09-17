@@ -35,7 +35,7 @@ externos podem ter custos/quotas. Não há prazo de instalação ou latência ga
 
 ## Antes de enviar (não colar como marketing)
 
-- O repositório e a imagem estão privados: abra o acesso ou combine acesso com a banca.
+- Repositório e pacote tornados públicos com autorização do proprietário; valide instalação em uma máquina independente.
 - Preencha o campo de vídeo somente quando existir uma gravação real revisada.
 - Registre o agente pelo cliente oficial, obtenha/confirme `AGENT_ID` e coloque-o
   na configuração distribuída. Sem ele, a telemetria da competição está pendente.

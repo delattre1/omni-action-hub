@@ -2,7 +2,7 @@
 
 O repositório já existe em https://github.com/fecabrall/omni-action-hub, com origin e
 main configurados. **Não rode git init nem remote add novamente nesta pasta.**
-As alterações desta entrega são enviadas ao repositório privado existente.
+As alterações desta entrega são enviadas ao repositório existente.
 
 Para próximas alterações:
 
@@ -33,7 +33,7 @@ Visibilidade não muda com git push. Antes de tornar público, revise todo o his
 vídeos e artefatos, além do commit atual. No GitHub: Settings → General → Danger Zone
 → Change repository visibility. O pacote GHCR tem visibilidade própria; confira
 Package settings. Um repositório público com imagem privada continua bloqueando
-instalações anônimas. A conta/projeto permanece privado até essa decisão explícita.
+instalações anônimas. Repositório e pacote foram tornados públicos nesta entrega após autorização explícita.
 
 .gitignore evita inclusão acidental; não remove segredos já rastreados e não
 impede `git add -f`. Se houver vazamento, revogue a chave e trate o histórico.

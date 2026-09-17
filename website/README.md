@@ -54,7 +54,7 @@ automaticamente pela suíte. Não há promessa de ticket em 2 segundos.
 `public/evaluation.md`, `installation.md` e `privacy.md` são downloads públicos
 sanitizados, sem paths locais, credenciais ou screenshots de pessoas.
 Atualize-os quando a distribuição real mudar. O botão de instalação entrega o
-guia e informa que a imagem pública ainda está em preparação.
+guia e informa que a imagem pública está disponível no GHCR.
 
 A referência [United Carriers](https://unitedcarriers.com) orientou a hierarquia
 editorial e o ritmo das seções; marca, composição e arte do Omni são próprias.

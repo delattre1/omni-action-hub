@@ -26,8 +26,7 @@ Não se anuncia instalação em dois minutos, nem três testes humanos concluíd
 O workflow v0.1.0 concluiu testes, landing e publicação da imagem:
 https://github.com/fecabrall/omni-action-hub/actions/runs/34916273136
 O primeiro pull sem acesso ao pacote privado retornou unauthorized. A abertura de
-repositório e imagem foi autorizada pelo proprietário nesta rodada; o resultado
-público deve ser confirmado antes de divulgar.
+repositório e imagem foi autorizada pelo proprietário nesta rodada; o pull por digest passou após abrir o pacote.
 
 v0.1.1 inclui MIT para código próprio, preservação de licenças upstream e ajustes
 de instalação. Use o digest final da release indicado no `.env.example`.
@@ -41,3 +40,14 @@ Chaves reais permanecem locais. Histórico e arquivos são revisados antes de ab
 Pendentes: vídeo real publicado, registro/AGENT_ID confirmado, telemetria recebida
 no servidor oficial, verificação pela equipe, testes humanos e prazo/hora oficiais.
 O kit em AGENT-INDEX-SUBMISSION.md não afirma que a submissão já foi feita.
+
+## Confirmação pública final
+
+Repositório clonado sem credential helper. GHCR respondeu anonimamente ao manifest
+de v0.1.1, cujo SHA-256 foi calculado e comparado ao header do registry.
+Digest: `sha256:35abfee2a453caa0e22d92abe43799b28a4dd0b890a04fd1eded808bd544c4ee`.
+Workflow: https://github.com/fecabrall/omni-action-hub/actions/runs/35169891728
+
+O `.env.example` de `main` é atualizado após a publicação, para conter o digest
+resultante do build. Para instalar, use `main` conforme o README; o arquivo de
+configuração dentro de um arquivo-fonte da tag pode referenciar a release anterior.

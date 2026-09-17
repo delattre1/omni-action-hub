@@ -1,14 +1,14 @@
 # Instalar Omni-Action Hub
 
-Status: distribuição pública em preparação. Não há link de download de imagem
-pública confirmado nesta página. Obtenha o repositório e digest com o mantenedor.
+Repositório público: https://github.com/fecabrall/omni-action-hub
+Imagem pública no GHCR; use o digest de `.env.example` no repositório.
 
 Pré-requisitos: Docker com Compose 2.30+, conta/linha Plow provisionada pelo fluxo
 plow-agents login → seleção de linha → mint, chave API Gemini, chave Linear,
 UUID do time e conversa autorizada. Cada instalação usa suas próprias credenciais.
 A preparação de contas é separada do tempo de instalação do agente.
 
-1. Na pasta do projeto, copie `.env.prod.example` para `.env`; execute `chmod 600 .env`.
+1. Na pasta do projeto, copie `.env.example` para `.env`; execute `chmod 600 .env`.
 2. Preencha `OMNI_IMAGE` com a imagem publicada por `@sha256:...`,
    `PLOW_CREDENTIALS_FILE` com o caminho absoluto do arquivo mintado (modo 0600),
    `GEMINI_API_KEY`, `GEMINI_MODEL`, `LINEAR_API_KEY`, `LINEAR_TEAM_ID`,

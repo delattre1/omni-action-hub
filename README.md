@@ -18,7 +18,7 @@ iMessage viram uma issue no Linear, com evidência anexada e confirmação na co
 | Confirmação de recebimento | 1,371 s | Uma entrega real do ACK; não é tempo de criação do ticket |
 | Representação para visão | 6,23 MB → 865 KB / 236 ms | Benchmark sintético; cerca de 86% menos bytes, não 86× |
 
-**Status:** gateway local validado; imagem privada publicada; distribuição pública, instalação independente
+**Status:** gateway local validado; distribuição pública disponível; instalação independente
 e validação com três pessoas continuam pendentes. Há um harness de ML Evals, mas
 nenhum F1 real é publicado sem o dataset anotado. O [relatório](docs/evaluation-2026-09-14/REPORT.md)
 detalha os limites; [VALIDATION.md](VALIDATION.md) guarda as demonstrações históricas.
@@ -82,18 +82,24 @@ Silicon isso depende da emulação do Docker. O build amd64 e sua execução em 
 
 ## Instalação
 
-**Imagem pronta, sem build local.** Repositório e GHCR estão privados nesta etapa;
-usuários sem acesso não conseguem instalar. Abra ambos antes de divulgar ao público,
-ou conceda acesso aos avaliadores. Para pacote privado, faça login no GHCR conforme
-[a documentação oficial](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry).
+**Imagem pública pronta, sem build local e sem login no GHCR.**
 
-### Prepare as contas uma vez
+### 1. Clone e copie a configuração
+
+```sh
+git clone https://github.com/fecabrall/omni-action-hub.git
+cd omni-action-hub
+cp .env.example .env
+chmod 600 .env
+```
+
+### 2. Prepare as contas uma vez
 
 - Obtenha sua [chave Gemini](https://aistudio.google.com/app/apikey) e sua
   [chave pessoal Linear](https://linear.app/settings/api). No Linear, copie o
   UUID do time pelo menu de comandos “Copy model UUID”. Use um time de testes.
 - Tenha Docker Desktop aberto, Compose 2.30+ e Python 3 para a CLI Plow.
-- Provisione sua linha Plow. Dentro da pasta clonada abaixo:
+- Provisione sua linha Plow. Dentro da pasta clonada:
 
 ```sh
 git clone https://github.com/plow-pbc/plow-agents.git work/plow-agents
@@ -110,14 +116,12 @@ O login solicita ativação pelo telefone. Se não houver linha, use `login --ne
 Copie o `cht_...` impresso pelo último comando para `OMNI_ALLOWED_CHAT_ID`.
 Não reutilize a mesma linha em dois agentes ativos. Guia: [Plow Quickstart](https://github.com/plow-pbc/plow-agents#quickstart).
 
-### Clone, configure, inicie
+### 3. Preencha e inicie
+
+Abra `.env` no seu editor, preencha as chaves/UUIDs e mantenha o digest informado.
+Depois:
 
 ```sh
-git clone https://github.com/fecabrall/omni-action-hub.git
-cd omni-action-hub
-cp .env.example .env
-chmod 600 .env
-# Prepare o Plow como acima e preencha as chaves/UUIDs no .env com seu editor.
 docker compose up -d
 ```
 
@@ -241,7 +245,7 @@ na rede, não podem ter seu uso reconstruído e não são estimadas.
 Durante desenvolvimento, deixe `AGENT_ID` vazio. Antes da competição:
 
 1. Publique o repositório e uma release da imagem.
-2. Escolha um ID disponível no Agent Index e configure-o em `omni.env`.
+2. Escolha um ID disponível no Agent Index e configure-o em `.env` (ou `omni.env` no fluxo de desenvolvimento).
 3. Reinicie com `docker compose up -d --force-recreate`.
 4. O cliente oficial tenta registrar a instalação e enviar contagens por hora.
 5. Complete nome, descrição e instruções no Agent Index, confira os contadores
@@ -279,7 +283,7 @@ Para remover definitivamente **esta instalação**, use:
 ```sh
 work/plow-agents/bin/plow-agents revoke
 docker compose down -v
-rm -f omni.env plow-credentials
+rm -f .env omni.env plow-credentials
 ```
 
 `down -v` apaga memória, auditoria e fila desta instalação. Não remove tickets

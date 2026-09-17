@@ -1,8 +1,8 @@
 # Da pasta local à distribuição verificável
 
-Estado: workflow preparado; **nenhuma imagem nova foi publicada por esta mudança**.
-Repositório privado: https://github.com/fecabrall/omni-action-hub. O namespace é
-derivado de `github.repository` quando o workflow roda. Não implica acesso público.
+Estado: imagem publicada pelo GitHub Actions; repositório e pacote públicos.
+Repositório público: https://github.com/fecabrall/omni-action-hub. O namespace é
+derivado de `github.repository` quando o workflow roda. O acesso anônimo foi validado após a mudança de visibilidade.
 
 ## Publicar
 
@@ -62,3 +62,7 @@ A landing é independente, exportada em `website/out`, sem segredos nem API no
 browser. Hospede essa pasta em um provedor estático. Seu deploy não inicia o agente.
 
 Referência: [GitHub — Publishing Docker images](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images).
+
+Release de lançamento: v0.1.1. Instalação canônica: clone de `main`, cujo `.env.example`
+é atualizado após o build com o digest publicado. Não confunda a tag de código
+com uma configuração já preenchida com o digest que só existirá após o build.

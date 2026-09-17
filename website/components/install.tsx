@@ -51,8 +51,7 @@ export function Install() {
             "Pré-requisitos e publicação da imagem são etapas separadas."}
         </p>
         <div className="release-note">
-          <span className="status-dot amber" /> Distribuição pública em
-          preparação
+          <span className="status-dot amber" /> Imagem pública no GHCR
         </div>
       </div>
     </section>

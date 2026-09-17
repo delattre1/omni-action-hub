@@ -8,5 +8,9 @@
   "pids_limit": 256,
   "preflight": "passed",
   "scope": "configuration and network-disabled env probe; fake credentials; no second agent started",
-  "private_image_pull": "unauthorized before visibility change"
+  "private_image_pull": "unauthorized before visibility change",
+  "public_repository_clone": "passed without credential helper",
+  "public_registry_manifest": "passed with anonymous token",
+  "release": "v0.1.1",
+  "image_digest": "sha256:35abfee2a453caa0e22d92abe43799b28a4dd0b890a04fd1eded808bd544c4ee"
 }
