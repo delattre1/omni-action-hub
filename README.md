@@ -2,260 +2,123 @@
 
 # Omni-Action Hub
 
-**Menos relato. Mais resolvido.** Uma captura de tela e “Registra esse bug” no
-iMessage viram uma issue no Linear, com evidência anexada e confirmação na conversa.
+**Menos relato. Mais resolvido.** Uma captura de tela e "Registra esse bug" no
+iMessage viram uma issue no Linear — com evidência anexada e confirmação na conversa.
 
-**Demonstração:** [roteiro de 60 segundos](docs/DEMO-60S.md). Vídeo real ainda não publicado; não há link fictício.
+<div align="center">
 
-[Começar](#instalação) · [Arquitetura](#arquitetura-em-um-fluxo) ·
-[Avaliação de IA](evals/README.md) · [Landing page](website/README.md) ·
-[Distribuição](docs/DISTRIBUTION.md)
+[![🎬 Assista à Demonstração Real (60s)](https://img.shields.io/badge/🎬_Demo_Real-Assistir_no_YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://youtube.com/shorts/HQ94KQGZa-c)
 
-| Evidência | Resultado observado | Escopo |
-| --- | --- | --- |
-| Suíte em 14/09/2026 | 100 testes aprovados | Unitários e integração local; sem promessa de ausência de bugs |
-| Concorrência | 72 jobs sem tickets simulados duplicados | Lotes com 1, 2 e 4 workers |
-| Confirmação de recebimento | 1,371 s | Uma entrega real do ACK; não é tempo de criação do ticket |
-| Representação para visão | 6,23 MB → 865 KB / 236 ms | Benchmark sintético; cerca de 86% menos bytes, não 86× |
+</div>
 
-**Status:** gateway local validado; distribuição pública disponível; instalação independente
-e validação com três pessoas continuam pendentes. Há um harness de ML Evals, mas
-nenhum F1 real é publicado sem o dataset anotado. O [relatório](docs/evaluation-2026-09-14/REPORT.md)
-detalha os limites; [VALIDATION.md](VALIDATION.md) guarda as demonstrações históricas.
+---
 
-## Arquitetura em um fluxo
+## Como funciona
 
-```mermaid
-flowchart LR
-  A[Imagem + comando no iMessage] --> B[Plow / conversa autorizada]
-  B --> C[Buffer 60 s + fila SQLite]
-  C --> D[ACK independente]
-  C --> E[Compressão + Gemini]
-  E --> F{Análise disponível?}
-  F -->|Sim| G[Relatório validado]
-  F -->|Falha transitória persistente| H[Evidência + ai-pending]
-  G --> I[Upload + issue no Linear]
-  H --> I
-  I --> J[UUID persistido + reconciliação]
-  J --> K[Resumo e link no iMessage]
+```
+Você (iMessage)              Omni-Action Hub                    Linear
+      │                            │                              │
+      ├── 📸 Screenshot ──────────►│                              │
+      ├── "Registra esse bug" ────►│                              │
+      │                            ├── ⏳ ACK instantâneo ───────►│ (iMessage)
+      │                            ├── Comprime imagem            │
+      │                            ├── Envia ao Gemini (visão)    │
+      │                            ├── Extrai: tipo, severidade,  │
+      │                            │   comportamento esperado...  │
+      │                            ├── Upload do screenshot ─────►│
+      │                            ├── Cria issue completa ──────►│
+      │◄── ✅ Link do ticket ──────┤                              │
 ```
 
-A execução é local; as APIs são externas. Fotos isoladas aguardam em silêncio.
-O modelo sugere metadados, mas não escolhe credenciais, destino ou ferramentas.
-Falhas de autenticação exigem correção, sem criar um fallback enganoso.
+**Fluxo real:** você envia um print + comando no iMessage → o Omni confirma o recebimento (ACK) → o Gemini analisa a imagem e extrai contexto → o ticket é criado no Linear com screenshot anexado → você recebe o link na conversa.
 
-## O que esta versão faz
+> O tempo total depende do Gemini e da rede. O ACK chega em ~1s; a criação do ticket leva entre 5s e 50s dependendo da carga da API.
 
-- Aceita o comando com uma imagem na mesma mensagem ou em resposta citada a uma imagem.
-- Atende apenas o proprietário, na conversa principal identificada pelo Plow.
-- Mantém time e projeto do Linear fixos na configuração da instalação.
-- Classifica bug, melhoria (`feature`) ou tarefa (`task`); extrai evidência,
-  comportamento esperado, severidade, prioridade, projeto mencionado e tags.
-  Prioridade, projeto e tags são sugestões na descrição: não mudam o destino
-  configurado nem os campos operacionais do Linear automaticamente.
-- Persiste o trabalho antes de confirmar recebimento ao transporte.
-- Recupera criação incerta consultando o UUID definido antes da mutation.
-- Mantém uma fila de respostas separada da criação do ticket.
+---
 
-É um gateway de propósito específico: o código herda o transporte do plugin
-oficial, mas substitui a etapa de despacho ao agente genérico. Não há shell,
-navegador ou ferramenta de comunicação exposta ao modelo. O runtime base e seu
-bootstrap de credenciais permanecem na imagem; o executável do serviço
-`hermes-gateway` passa a iniciar `omni.gateway`.
+## 🚀 Instalação Rápida
+
+### Passo 1 — Clone o repositório
+
+```sh
+git clone https://github.com/fecabral/omni-action-hub.git && cd omni-action-hub
+```
+
+### Passo 2 — Configure as variáveis
+
+```sh
+cp .env.example .env
+chmod 600 .env
+# Abra .env no seu editor e preencha as chaves (instruções dentro do arquivo)
+```
+
+### Passo 3 — Suba o container
+
+```sh
+docker compose -f docker-compose.prod.yml up -d
+```
+
+> **Pré-requisito único:** antes do Passo 3, você precisa provisionar suas credenciais Plow.
+> Veja a seção [Configuração do Plow](#configuração-do-plow) abaixo.
+
+---
 
 ## Pré-requisitos
 
-- macOS com Docker Desktop funcional e Docker Compose **2.30 ou superior**.
-- Python 3 e Git para o instalador.
-- Conta/linha Plow e telefone habilitado para a verificação do serviço.
-- Chave da **API Gemini** com acesso ao modelo configurado.
-- Chave pessoal Linear com acesso ao time e permissão para criar issues/upload.
-- UUID do time; opcionalmente, UUID de um projeto desse time.
+| Recurso | Onde obter |
+| --- | --- |
+| Docker Desktop + Compose ≥ 2.30 | [docker.com](https://www.docker.com/products/docker-desktop/) |
+| Chave API Gemini | [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| Chave API Linear (pessoal) | [Linear Settings](https://linear.app/settings/api) |
+| UUID do time Linear | Menu de comandos → "Copy model UUID" |
+| Linha Plow + telefone | [Plow Quickstart](https://github.com/plow-pbc/plow-agents#quickstart) |
 
-Use “Copy model UUID” no Linear para obter os identificadores. Cada pessoa
-configura suas próprias chaves. Elas não devem ser enviadas por chat, commitadas
-ou incluídas na imagem. O fluxo usa serviços externos: screenshots passam pelo
-Plow e são enviados ao Gemini e ao armazenamento privado do Linear.
+A imagem roda em `linux/amd64`. No Apple Silicon funciona via emulação do Docker.
 
-A base escolhida é `linux/amd64`; o Compose fixa essa plataforma. No Apple
-Silicon isso depende da emulação do Docker. O build amd64 e sua execução em Apple Silicon foram validados via emulação. Não há imagem ARM nativa.
+---
 
-## Instalação
-
-**Imagem pública pronta, sem build local e sem login no GHCR.**
-
-### 1. Clone e copie a configuração
-
-```sh
-git clone https://github.com/fecabrall/omni-action-hub.git
-cd omni-action-hub
-cp .env.example .env
-chmod 600 .env
-```
-
-### 2. Prepare as contas uma vez
-
-- Obtenha sua [chave Gemini](https://aistudio.google.com/app/apikey) e sua
-  [chave pessoal Linear](https://linear.app/settings/api). No Linear, copie o
-  UUID do time pelo menu de comandos “Copy model UUID”. Use um time de testes.
-- Tenha Docker Desktop aberto, Compose 2.30+ e Python 3 para a CLI Plow.
-- Provisione sua linha Plow. Dentro da pasta clonada:
+## Configuração do Plow
 
 ```sh
 git clone https://github.com/plow-pbc/plow-agents.git work/plow-agents
 git -C work/plow-agents checkout 8ce907e220ab67018d6857e8054a41eed4ecd279
 work/plow-agents/bin/plow-agents login
 work/plow-agents/bin/plow-agents lines
-# Substitua pelo ln_... livre mostrado acima. Isso cria ./plow-credentials.
+# Substitua ln_... pela linha livre mostrada:
 work/plow-agents/bin/plow-agents mint ln_SUA_LINHA
 chmod 600 plow-credentials
 python3 scripts/setup.py --chat-id
 ```
 
-O login solicita ativação pelo telefone. Se não houver linha, use `login --new-line`.
-Copie o `cht_...` impresso pelo último comando para `OMNI_ALLOWED_CHAT_ID`.
-Não reutilize a mesma linha em dois agentes ativos. Guia: [Plow Quickstart](https://github.com/plow-pbc/plow-agents#quickstart).
+Copie o `cht_...` impresso para `OMNI_ALLOWED_CHAT_ID` no `.env`.
 
-### 3. Preencha e inicie
-
-Abra `.env` no seu editor, preencha as chaves/UUIDs e mantenha o digest informado.
-Depois:
-
-```sh
-docker compose up -d
-```
-
-`.env.example` contém links, instruções e o digest da imagem. `COMPOSE_FILE` já
-seleciona `docker-compose.prod.yml`, sem compilar. Dados sensíveis com `$` ou `#`
-devem ficar entre aspas simples no `.env`. Não acrescente comentários na mesma
-linha da chave. O arquivo Plow deve existir antes de iniciar: o bind falha se faltar.
-
-Validação opcional antes de iniciar: `python3 scripts/preflight.py`. Ela não imprime
-chaves nem testa contas externas. Após iniciar:
-
-```sh
-docker compose ps
-docker exec "$(docker compose ps -q agent)" /bin/sh -c 'omni doctor --deep'
-```
-
-O diagnóstico profundo usa a API Gemini e consome sua quota. Para ver apenas eventos
-operacionais: `docker compose logs --tail 50 agent`; revise antes de compartilhar.
-Não exponha a saída de `docker compose config`: ela contém variáveis expandidas.
-
-**Dois minutos é uma meta, não uma medição.** Preparação de contas, autenticação,
-download da imagem e emulação amd64 variam. O teste técnico em clone limpo está em
-[LAUNCH-CHECK.md](docs/LAUNCH-CHECK.md); três instalações humanas seguem pendentes.
-
-### Desenvolvimento e instalação antiga
-
-A configuração antiga `omni.env` continua suportada por `compose.yml`.
-Use explicitamente `docker compose -f compose.yml up --build -d` para desenvolvimento.
-`scripts/install.sh` é o assistente desse fluxo antigo, com build local; não é o
-atalho de distribuição. Para migrar uma instalação ativa, pare-a primeiro e
-preserve o volume; não execute outra cópia sobre a mesma linha Plow.
+---
 
 ## Uso
 
-1. Capture a tela com `Cmd+Shift+4`.
-2. Envie a imagem e “Registra esse bug” na mesma mensagem à linha do agente,
-   ou responda especificamente à mensagem da imagem com esse comando.
-3. Acrescente o comportamento esperado se você o conhecer.
-4. Aguarde “Bug registrado”, o identificador e o link do Linear.
+1. Capture a tela (`Cmd+Shift+4` no Mac).
+2. Envie a imagem + "Registra esse bug" na mesma mensagem ao agente no iMessage.
+3. Aguarde o ACK e, depois, o link do ticket no Linear.
 
-Comandos reconhecidos no início da mensagem: `Registra esse bug`,
-`Registra essa tarefa`, `Registra essa melhoria`, `Cria um card`, `/bug`,
-`/task` e `/feature` (também variantes com “registre” e “crie”). Cada pedido aceita exatamente uma imagem PNG,
-JPEG ou WebP, até 10 MB e 25 megapixels. O Omni normaliza para PNG e remove
-metadados. HEIC/HEIF, áudio, documentos e várias imagens recebem pedido de correção.
-Uma imagem enviada isoladamente não autoriza a criação de um ticket.
+**Comandos aceitos:** `Registra esse bug`, `Registra essa tarefa`, `Registra essa melhoria`, `Cria um card`, `/bug`, `/task`, `/feature`.
 
-Um screenshot não prova a causa do erro, o impacto ou como reproduzi-lo. O
-relatório instrui a IA a reconhecer essas lacunas; qualidade semântica ainda
-exige avaliação com exemplos reais e triagem pela equipe.
+Aceita PNG, JPEG ou WebP (até 10 MB). Você pode enviar a imagem e o comando separados — a janela de associação é de 60 segundos.
 
-## Diagnóstico e recuperação
+---
+
+## Diagnóstico
 
 ```sh
-docker compose ps
-docker exec -it omni-action-hub-agent-1 /bin/sh -c "omni doctor"
-docker exec -it omni-action-hub-agent-1 /bin/sh -c "omni status"
-docker exec -it omni-action-hub-agent-1 /bin/sh -c "omni reconcile UUID_DO_TRABALHO"
-docker exec -it omni-action-hub-agent-1 /bin/sh -c "omni retry-reply UUID_DO_TRABALHO"
+docker compose ps                                                    # Status
+docker exec "$(docker compose ps -q agent)" /bin/sh -c 'omni doctor' # Saúde
+docker exec "$(docker compose ps -q agent)" /bin/sh -c 'omni status' # Fila
 ```
 
-`doctor` faz consultas de leitura às APIs. Verifica acesso ao modelo Gemini e
-ao destino Linear; não faz inferência paga nem testa a criação/upload. O teste
-completo exige enviar uma imagem real. `status` mostra somente IDs internos,
-estados, tentativas e contagens de uso; não mostra mensagens nem chaves.
+Use `omni doctor --deep` para testar acesso real ao Gemini (consome quota).
 
-`reconcile` consulta um ticket incerto pelo UUID exato e enfileira seu link se
-ele existir. Nunca repete a criação. `retry-reply` reenvia a resposta salva.
-Após três tentativas de entrega malsucedidas, a resposta fica pausada.
+---
 
-Os estados principais são `queued → creating → ready → done`. Uma criação
-não confirmada fica `unknown → held` após informar o usuário. Um resultado
-vazio na consulta não é prova de que uma mutation em andamento não poderá
-concluir depois; por isso a recriação continua suspensa.
-
-O SQLite garante transações locais. Ele não torna a API do Linear e o envio de
-mensagens uma transação distribuída. Uma queda imediatamente após o envio pode
-duplicar **a resposta**; a recuperação não repete a mutation de criação.
-
-Imagens de trabalhos bem-sucedidos são removidas após salvar o ticket. Imagens
-temporárias de falhas expiram em 24 horas enquanto o gateway está rodando,
-incluindo limpeza ao reiniciar. Relatórios e registros de auditoria permanecem
-no volume. A remoção local não exclui os dados já enviados aos provedores.
-
-
-### Plow e s6: diagnóstico e recuperação
-
-Use os comandos `docker exec` acima. O CLI agora carrega diretamente as
-variáveis protegidas publicadas pelo bootstrap do Plow; não depende de
-`with-contenv`, `execlineb` ou `ifelse`. O wrapper `scripts/control.sh` foi
-simplificado para delegar a `docker exec`, mas o caminho direto é o recomendado.
-
-O gateway registra a plataforma `plow_chat` antes de instanciá-la. Falhas de
-conexão não encerram a fila: há reconexão com espera progressiva entre 5 e 300
-segundos, além das rotinas de recuperação oficiais do transporte. O healthcheck
-fica negativo enquanto o WebSocket está desconectado e volta a positivo quando
-a conexão é recuperada. Logs mostram eventos e tipos de erro, nunca tokens.
-
-Os tickets temporários do WebSocket são obtidos novamente pelo transporte.
-Um token de agente realmente revogado exige credencial nova: `login` autentica
-a CLI, mas não substitui por si só o token usado pelo container. Nesse caso,
-use a rotação oficial (`work/plow-agents/bin/plow-agents rotate`) e recrie o
-container com `docker compose up -d --force-recreate`. Não repita a criação
-de tickets manualmente para contornar uma resposta ausente.
-
-## Telemetria e competição
-
-A imagem inclui o cliente oficial do Agent Index, fixado por commit e checksum,
-em um serviço s6 separado. O gateway grava apenas contagens retornadas pelo
-Gemini em um SQLite próprio, compatível com `session_model_usage` do coletor.
-O reporter aponta exclusivamente para essa base; não soma também a base de
-sessões do Hermes. Tokens de cache são separados dos tokens de entrada e os
-tokens de raciocínio são incluídos na saída uma vez.
-
-O teste executa o **cliente oficial real**, localmente, para comprovar leitura
-e ausência de contagem dupla em coletas repetidas. A aceitação pelo leaderboard
-e a elegibilidade deste gateway restrito ainda dependem de teste/validação
-pela organização. Chamadas que tenham consumido tokens, mas perdido a resposta
-na rede, não podem ter seu uso reconstruído e não são estimadas.
-
-Durante desenvolvimento, deixe `AGENT_ID` vazio. Antes da competição:
-
-1. Publique o repositório e uma release da imagem.
-2. Escolha um ID disponível no Agent Index e configure-o em `.env` (ou `omni.env` no fluxo de desenvolvimento).
-3. Reinicie com `docker compose up -d --force-recreate`.
-4. O cliente oficial tenta registrar a instalação e enviar contagens por hora.
-5. Complete nome, descrição e instruções no Agent Index, confira os contadores
-   com uma chamada real e solicite a verificação da equipe organizadora.
-
-A página oficial informa que apenas agentes verificados podem vencer. A fórmula
-de pontuação, o teto de tokens e a eliminação por instalação superior a cinco
-minutos não foram confirmados. Não use consumo artificial para testar o ranking.
-
-## Desenvolvimento e testes
+## Desenvolvimento
 
 ```sh
 python3 -m venv .venv
@@ -265,140 +128,48 @@ python3 -m venv .venv
 .venv/bin/pytest -q
 ```
 
-Os downloads são fontes públicas fixadas por SHA/checksum para testes offline.
-Os testes não criam tickets nem enviam mensagens. O workflow de GitHub Actions
-testa alterações e publica em GHCR somente ao receber uma tag `v*`, após passar
-nos testes. Configure a visibilidade pública do pacote para distribuição.
+Para dev local com build: `docker compose -f compose.yml up --build -d`.
 
-## Parar, atualizar e desinstalar
+---
 
-`docker compose down` para preservando dados. Para atualizar código, execute
-os testes e `docker compose up --build -d`. Mudanças em modelo, credenciais ou
-destino são feitas localmente em `omni.env`; recrie o container para aplicá-las.
-Guarde a versão anterior da imagem antes de atualizar. Evite reconfigurar o
-destino com trabalhos pendentes.
-
-Para remover definitivamente **esta instalação**, use:
+## Parar e desinstalar
 
 ```sh
-work/plow-agents/bin/plow-agents revoke
-docker compose down -v
-rm -f .env omni.env plow-credentials
+docker compose down          # Para (preserva dados)
+docker compose down -v       # Para e remove dados locais
 ```
 
-`down -v` apaga memória, auditoria e fila desta instalação. Não remove tickets
-do Linear nem revoga suas chaves Gemini/Linear; revogue essas chaves nas contas
-se não forem mais necessárias. Não execute a remoção durante uma criação incerta.
+`down -v` não remove tickets do Linear nem revoga suas chaves — faça isso nas respectivas plataformas.
 
-## Fontes técnicas
+---
 
-- [Base Plow](https://github.com/plow-pbc/plow-hermes-agent)
-- [Plugin Plow Chat](https://github.com/plow-pbc/hermes-plugin-plow)
-- [CLI de credenciais](https://github.com/plow-pbc/plow-agents)
+## Arquitetura
+
+```mermaid
+flowchart LR
+  A[Imagem + comando no iMessage] --> B[Plow / conversa autorizada]
+  B --> C[Buffer 60s + fila SQLite]
+  C --> D[ACK independente]
+  C --> E[Compressão + Gemini]
+  E --> F{Análise disponível?}
+  F -->|Sim| G[Relatório validado]
+  F -->|Falha persistente| H[Evidência + ai-pending]
+  G --> I[Upload + issue no Linear]
+  H --> I
+  I --> J[UUID persistido + reconciliação]
+  J --> K[Resumo e link no iMessage]
+```
+
+---
+
+## Fontes
+
+- [Base Plow](https://github.com/plow-pbc/plow-hermes-agent) · [Plugin Plow Chat](https://github.com/plow-pbc/hermes-plugin-plow) · [CLI Plow](https://github.com/plow-pbc/plow-agents)
+- [API Gemini](https://ai.google.dev/api/generate-content) · [API Linear](https://linear.app/developers/graphql)
 - [Agent Index](https://aiworthusing.com/agent-index)
-- [API Gemini GenerateContent](https://ai.google.dev/api/generate-content)
-- [API Linear](https://linear.app/developers/graphql)
-- [Upload privado no Linear](https://linear.app/developers/how-to-upload-a-file-to-linear)
 
-### Imagem e comando em mensagens separadas
+---
 
-Envie uma imagem e, em até **60 segundos**, envie “Registra esse bug” na mesma
-conversa, com o mesmo remetente autenticado. A imagem aguarda em SQLite sem
-acionar Gemini nem enviar resposta. A próxima mensagem de texto encerra essa
-associação; somente um comando reconhecido autoriza criar o ticket. Se houver
-mais de uma imagem pendente, o agente pede esclarecimento.
+## Licença
 
-Também é possível responder ao balão original. O transporte oficial resolve
-`reply_to.message.attachments`; quando o evento fornece apenas `reply_to_guid`,
-o Omni procura a imagem pelo GUID ou UID na mesma conversa e remetente. Uma
-referência explícita nunca usa outra foto recente como alternativa. Imagens
-sem uso ficam disponíveis para essa referência por até 24 horas; a associação
-automática continua limitada a 60 segundos. Ao transferir a imagem para um job,
-o buffer é consumido na mesma transação que cria o job. Após sucesso, a cópia
-temporária do job é excluída. O buffer sobrevive ao reinício do container.
-
-O Linear faz até três tentativas para falhas de conexão anteriores ao envio,
-com espera de 1 e 2 segundos. Leituras e uploads já possuem retry para falhas
-transitórias. Se a criação pode ter sido enviada (por exemplo, timeout de leitura),
-o agente consulta o UUID persistido antes de decidir o resultado e suspende
-recriação quando há dúvida.
-
-Prova local reproduzível, sem credenciais nem chamadas externas:
-
-```sh
-python3 -m pip install -e '.[test]'
-./scripts/test-image-buffer.sh
-```
-
-O teste `test_image_then_text_two_seconds` aguarda dois segundos reais, usa o
-workflow e SQLite de produção, e verifica análise única, ticket único e envio
-do link com clientes externos simulados. Para outra instalação Python, defina
-`PYTHON=/caminho/para/python` ao executar o script.
-
-### Diagnóstico de anexos reais e tolerância à ordem de chegada
-
-O gateway usa `/var/lib/hermes/omni/downloads`, criado e testado pelo próprio
-usuário `hermes`. Ele não depende de `/var/lib/hermes/image_cache`: um diretório
-legado pertencente a root pode permitir download HTTP e ainda impedir a gravação.
-O `omni doctor` agora também verifica `storage`; a inicialização do gateway testa
-escrita real antes de publicar saúde.
-
-A janela de 60 segundos agora funciona nas duas ordens. Um comando sem imagem
-fica no estado persistente `waiting`; se a imagem chegar depois, o mesmo job
-recebe o anexo. Sem imagem após o prazo, há uma única resposta de esclarecimento.
-Uma foto sozinha não envia mensagens, mesmo se o anexo estiver indisponível;
-esse caso a falha aparece nos logs. Replies explícitos não usam uma foto diferente
-como alternativa. Dois comandos pendentes ambíguos exigem esclarecimento.
-
-O WebSocket, a identidade, o cursor e o envio continuam usando o plugin oficial.
-O Omni substitui a função de resolução de mídia na instância privada do módulo,
-antes de conectar; os arquivos do plugin oficial não são editados. O resolvedor
-aceita PNG/JPEG/WebP, até 10 MB, faz streaming, limita concorrência a dois downloads,
-rejeita redirecionamentos e endereços fora do caminho `/v1/` da origem Plow permitida,
-não envia credenciais ao baixar URLs assinadas e remove downloads interrompidos.
-Há até três tentativas transitórias, com prazo total de 60 segundos por resolução.
-
-Diagnóstico reproduzível com um anexo real já recebido na conversa configurada:
-
-```sh
-docker exec -i omni-action-hub-agent-1 /bin/sh -c 'omni doctor'
-docker exec -i omni-action-hub-agent-1 /opt/hermes/.venv/bin/python < scripts/verify-live-media.py
-```
-
-O segundo comando muda para UID 10000, baixa a imagem real, valida o arquivo e
-prova foto silenciosa → dois segundos → comando, em uma fila temporária isolada.
-Ele não cria ticket nem envia mensagem. Remove a fila e os arquivos ao terminar.
-Os logs de produção agora mostram horário, decisão, contagem de anexos e hashes
-de identificadores; não incluem conteúdo de mensagens, imagens, tokens ou URLs
-assinadas. Falhas HTTP indicam provedor, status e tentativa.
-
-### Experiência de produto e distribuição
-
-Agora o fluxo confirma o recebimento, informa uma retentativa sem repetir avisos
-e entrega título, prioridade **sugerida** e URL. Se o Gemini esgotar retries
-transitórios, cria um relato com a evidência original e `ai-pending`. O gateway
-prepara essa label fixa na inicialização; permissões insuficientes aparecem no
-diagnóstico. Consulte [DESIGN.md](DESIGN.md) e a
-[arquitetura de produto](docs/PRODUCT-ARCHITECTURE.md).
-
-```sh
-# No container em execução; --deep usa tokens e testa visão/schema de verdade.
-docker exec -i omni-action-hub-agent-1 /bin/sh -c 'omni doctor --deep'
-
-# Em uma nova máquina, após configurar contas, credencial Plow e imagem publicada:
-cp .env.prod.example .env
-chmod 600 .env
-# Preencha .env, incluindo OMNI_IMAGE e PLOW_CREDENTIALS_FILE.
-docker compose --env-file .env -f docker-compose.prod.yml up -d --wait
-```
-
-O Compose de produção tem `pull_policy: always`, não contém `build`, exige as
-variáveis essenciais e persiste os dados em volume. A publicação da imagem no
-registro precisa acontecer antes desse comando; não há uma URL de imagem pública
-presumida. O caminho indicado para a credencial Plow deve existir na máquina de
-destino. Para segredos com `$`, use valores entre aspas simples no `.env`.
-
-Testes de produto: `python -m pytest -q tests/test_product.py`. Eles cobrem ACK
-sob inferência lenta, deduplicação de avisos após reinício, fallback com clientes
-HTTP reais sobre transporte simulado, label fixa, validação do catálogo e imagem
-com alto nível de detalhe reduzida para menos de 1 MB.
+[MIT](LICENSE)

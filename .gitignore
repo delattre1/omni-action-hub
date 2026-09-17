@@ -1,39 +1,11 @@
-omni.env
-plow-credentials
+# Secrets and credentials — never commit
 .env
-.venv/
-__pycache__/
-*.pyc
-*.egg-info/
-.pytest_cache/
-.ruff_cache/
-build/
-dist/
-work/
-*.db
-*.db-*
-website/node_modules/
-website/.next/
-website/out/
-website/*.tsbuildinfo
-website/.env*
-!website/.env.example
-evals/private/
 .env.*
-!.env.prod.example
-.DS_Store
-# Local state, database sidecars, secret backups and personal credentials
-*.sqlite
-*.sqlite3
-*.sqlite-*
-*.sqlite3-*
-*.db.*
-*.sqlite.*
-*.sqlite3.*
-.envrc
-.env-*
+!.env.example
+omni.env
 omni.env.*
 !omni.env.example
+plow-credentials
 plow-credentials*
 credentials/
 secrets/
@@ -41,7 +13,30 @@ secrets/
 *.key
 *.p12
 *.pfx
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+# Tools
+.pytest_cache/
+.ruff_cache/
+
+# Data and logs
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
 *.log
 data/
 backups/
-!.env.example
+work/
+
+# macOS
+.DS_Store
