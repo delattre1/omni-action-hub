@@ -17,11 +17,11 @@ while :; do
   case "$status" in
     0) ;;
     3) /command/s6-setuidgid hermes "$python" "$client" --register --agent "$AGENT_ID" >/dev/null 2>&1 || {
-         echo "omni-index: registration failed" >&2; sleep 3600; continue;
+         echo "omni-index: registration failed" >&2; sleep 300; continue;
        } ;;
-    *) echo "omni-index: unreadable reporter state" >&2; sleep 3600; continue ;;
+    *) echo "omni-index: unreadable reporter state" >&2; sleep 300; continue ;;
   esac
   /command/s6-setuidgid hermes env -u PLOW_AGENT_TOKEN "$python" "$client" >/dev/null 2>&1 \
     || echo "omni-index: report failed" >&2
-  sleep 3600
+  sleep 300
 done
